@@ -22,7 +22,7 @@ class AuthController extends BaseController
         if ($username === 'admin' && $password === 'admin') {
             session()->set([
                 'username'   => 'admin',
-                'name'       => 'Usuario Administrador',
+                'name'       => 'Administrador',
                 'isLoggedIn' => true
             ]);
 

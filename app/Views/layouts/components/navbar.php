@@ -14,58 +14,58 @@
 
         <!-- Right Navbar Links -->
         <ul class="navbar-nav ms-auto">
-            <!-- User Menu Dropdown -->
-            <li class="nav-item dropdown user-menu">
-                <a href="#" class="nav-link dropdown-toggle d-flex align-items-center gap-2" data-bs-toggle="dropdown">
-                    <i class="bi bi-person-circle fs-5 text-primary"></i>
-                    <span class="d-none d-md-inline fw-semibold text-secondary">
-                        <?= session('name') ?? 'Administrador' ?>
-                    </span>
+    <!-- User Menu Dropdown -->
+    <li class="nav-item dropdown user-menu">
+        <a href="#" class="nav-link dropdown-toggle d-flex align-items-center gap-2" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-person-circle fs-5 text-primary"></i>
+            <span class="d-none d-md-inline fw-semibold text-body">
+                <?= esc(session('name') ?? 'Administrador') ?>
+            </span>
+        </a>
+
+        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-2 p-0 overflow-hidden" style="min-width: 240px;">
+            <!-- Header con información del usuario -->
+            <li class="user-header bg-body-tertiary p-3 text-center border-bottom">
+                <div class="mb-2">
+                    <i class="bi bi-person-circle text-secondary display-6"></i>
+                </div>
+                <p class="mb-0 fw-bold text-truncate" title="<?= esc(session('name')) ?>">
+                    <?= esc(session('name') ?? 'Usuario Administrador') ?>
+                </p>
+                <small class="text-body-secondary d-block mb-2">
+                    @<?= esc(session('username') ?? 'admin') ?>
+                </small>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1">
+                    <?= esc(session('role') ?? 'Administrador') ?>
+                </span>
+            </li>
+
+            <!-- Opciones rápidas de usuario -->
+            <li class="pt-1">
+                <a href="<?= base_url('perfil') ?>" class="dropdown-item py-2 px-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-person text-body-secondary fs-6"></i>
+                    <span>Mi Perfil</span>
                 </a>
+            </li>
+            <li>
+                <a href="<?= base_url('configuracion') ?>" class="dropdown-item py-2 px-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-gear text-body-secondary fs-6"></i>
+                    <span>Configuración</span>
+                </a>
+            </li>
 
-                <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end shadow-sm border-0 mt-2">
-                    <!-- Header con información del usuario -->
-                    <li class="user-header bg-body-tertiary p-3 text-center border-bottom">
-                        <div class="mb-2">
-                            <i class="bi bi-person-circle text-secondary display-6"></i>
-                        </div>
-                        <p class="mb-0 fw-bold">
-                            <?= session('name') ?? 'Usuario Administrador' ?>
-                        </p>
-                        <small class="text-muted d-block mb-1">
-                            @<?= session('username') ?? 'admin' ?>
-                        </small>
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2">
-                            Administrador
-                        </span>
-                    </li>
+            <li><hr class="dropdown-divider my-1"></li>
 
-                    <!-- Opciones rápidas de usuario -->
-                    <li>
-                        <a href="<?= base_url('perfil') ?>" class="dropdown-item py-2 d-flex align-items-center">
-                            <i class="bi bi-person me-2 text-muted fs-6"></i> Mi Perfil
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<?= base_url('configuracion') ?>" class="dropdown-item py-2 d-flex align-items-center">
-                            <i class="bi bi-gear me-2 text-muted fs-6"></i> Configuración
-                        </a>
-                    </li>
-
-                    <li>
-                        <hr class="dropdown-divider my-1">
-                    </li>
-
-                    <!-- Footer: Cerrar Sesión -->
-                    <li class="user-footer p-2 text-end">
-                        <a href="<?= base_url('logout') ?>" class="btn btn-sm btn-outline-danger w-100 d-flex align-items-center justify-content-center gap-2">
-                            <i class="bi bi-box-arrow-right"></i>
-                            <span>Cerrar Sesión</span>
-                        </a>
-                    </li>
-                </ul>
+            <!-- Footer: Cerrar Sesión -->
+            <li class="user-footer p-2 bg-body-tertiary border-top">
+                <a href="<?= base_url('logout') ?>" class="btn btn-sm btn-outline-danger w-100 d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Cerrar Sesión</span>
+                </a>
             </li>
         </ul>
+    </li>
+</ul>
 
 
 
