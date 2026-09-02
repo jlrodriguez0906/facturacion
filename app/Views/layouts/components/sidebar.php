@@ -1,8 +1,7 @@
 <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
-    <div class="sidebar-brand d-flex align-items-center px-3">
-        <a href="<?= base_url() ?>" class="brand-link d-flex align-items-center gap-2 text-decoration-none">
-            <i class="bi bi-receipt-cutoff text-primary fs-4 brand-image"></i>
-            <span class="brand-text fw-bold fs-6">Facturación App</span>
+    <div class="sidebar-brand">
+        <a href="<?= base_url() ?>" class="brand-link">
+            <span class="brand-text fw-light">Facturación App</span>
         </a>
     </div>
 
@@ -10,18 +9,18 @@
         <nav class="mt-2">
             <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
                 
+                <!-- Opción Simple: Dashboard -->
                 <li class="nav-item">
-                    <a href="<?= base_url('dashboard') ?>" class="nav-link <?= url_is('dashboard*') ? 'active' : '' ?>">
-                        <i class="nav-icon bi bi-speedometer2"></i>
+                    <a href="<?= base_url('dashboard') ?>" class="nav-link <?= url_is('dashboard') ? 'active' : '' ?>">
+                        <i class="nav-icon bi bi-speedometer"></i>
                         <p>Dashboard</p>
                     </a>
                 </li>
 
-                <li class="nav-header text-uppercase text-muted fs-7 fw-bold mt-2">Gestión</li>
-
-                <?php $isFacturas = url_is('facturas*'); ?>
-                <li class="nav-item <?= $isFacturas ? 'menu-open' : '' ?>">
-                    <a href="#" class="nav-link <?= $isFacturas ? 'active' : '' ?>" aria-expanded="<?= $isFacturas ? 'true' : 'false' ?>">
+                <!-- Opción con Desplegable: Facturación -->
+                <!-- url_is('facturas*') detecta 'facturas', 'facturas/nueva', 'facturas/editar/1', etc. -->
+                <li class="nav-item <?= url_is('facturas*') ? 'menu-open' : '' ?>">
+                    <a href="#" class="nav-link <?= url_is('facturas*') ? 'active' : '' ?>">
                         <i class="nav-icon bi bi-receipt"></i>
                         <p>
                             Facturación
@@ -31,13 +30,13 @@
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
                             <a href="<?= base_url('facturas/nueva') ?>" class="nav-link <?= url_is('facturas/nueva') ? 'active' : '' ?>">
-                                <i class="nav-icon bi bi-plus-circle-dotted"></i>
+                                <i class="nav-icon bi bi-circle"></i>
                                 <p>Nueva Factura</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="<?= base_url('facturas') ?>" class="nav-link <?= url_is('facturas') && !url_is('facturas/nueva') ? 'active' : '' ?>">
-                                <i class="nav-icon bi bi-list-ul"></i>
+                            <a href="<?= base_url('facturas') ?>" class="nav-link <?= url_is('facturas') ? 'active' : '' ?>">
+                                <i class="nav-icon bi bi-circle"></i>
                                 <p>Historial</p>
                             </a>
                         </li>
