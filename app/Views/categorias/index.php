@@ -68,67 +68,39 @@
     const modalElement = document.getElementById('modalCategoria');
     const modalBS = new bootstrap.Modal(modalElement);
 
-    // Configuración global para alertas emergentes tipo Toast
-    const Toast = Swal.mixin({
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-        didOpen: (toast) => {
-            toast.addEventListener('mouseenter', Swal.stopTimer);
-            toast.addEventListener('mouseleave', Swal.resumeTimer);
-        }
-    });
-
     $(document).ready(function() {
-        // 1. Quitar el foco antes de que el modal comience a mostrarse
-        $('#modalCategoria').on('show.bs.modal', function() {
-            if (document.activeElement) {
-                document.activeElement.blur();
-            }
-        });
-
-        // 2. Al terminar de abrirse, enfocar el campo de texto
+        // Al terminar de abrirse el modal, enfocar el campo de texto
         $('#modalCategoria').on('shown.bs.modal', function() {
             $('#nombre').trigger('focus');
         });
 
         tablaCategorias = $('#tablaCategorias').DataTable({
             "ajax": "<?= base_url('categorias/getCategorias') ?>",
-            "columns": [{
+            "columns": [
+                {
                     "data": null,
                     "orderable": false,
                     "render": function(data, type, row) {
                         return `
-                        <button class="btn btn-warning btn-sm me-1" onclick="editarCategoria(${row.id_categoria})" title="Editar">
-                            <i class="bi bi-pencil-square"></i>
-                        </button>
-                        <button class="btn btn-danger btn-sm" onclick="eliminarCategoria(${row.id_categoria})" title="Eliminar">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    `;
+                            <button class="btn btn-warning btn-sm me-1" onclick="editarCategoria(${row.id_categoria})" title="Editar">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="eliminarCategoria(${row.id_categoria})" title="Eliminar">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        `;
                     }
                 },
-                {
-                    "data": "id_categoria"
-                },
-                {
-                    "data": "nombre"
-                }
+                { "data": "id_categoria" },
+                { "data": "nombre" }
             ],
-            "language": {
+            "language": typeof dtLanguageEs !== 'undefined' ? dtLanguageEs : {
                 "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json"
             }
         });
 
         $('#formCategoria').on('submit', function(e) {
             e.preventDefault();
-
-            // Quita el foco de cualquier elemento (especialmente al presionar Enter)
-            if (document.activeElement) {
-                document.activeElement.blur();
-            }
 
             limpiarErrores();
 
@@ -142,7 +114,6 @@
                         modalBS.hide();
                         tablaCategorias.ajax.reload();
                         
-                        // Notificación Toast de éxito
                         Toast.fire({
                             icon: 'success',
                             title: response.message
@@ -151,7 +122,6 @@
                         if (response.errors && response.errors.nombre) {
                             $('#nombre').addClass('is-invalid');
                             $('#error-nombre').text(response.errors.nombre);
-                            // Devolver el foco al campo con error
                             $('#nombre').trigger('focus');
                         }
                     }
@@ -160,11 +130,7 @@
         });
     });
 
-    // 3. Modificación de la función abrirModalCrear
     function abrirModalCrear() {
-        if (document.activeElement) {
-            document.activeElement.blur(); // Quita el foco del botón "Nueva Categoría"
-        }
         $('#formCategoria')[0].reset();
         $('#id_categoria').val('');
         limpiarErrores();
@@ -190,7 +156,6 @@
     }
 
     function eliminarCategoria(id) {
-        // 1. Pregunta de seguridad (Requiere confirmación explícita)
         Swal.fire({
             title: '¿Estás seguro?',
             text: "Esta acción no se puede deshacer.",
@@ -210,7 +175,6 @@
                         if (response.status === 'success') {
                             tablaCategorias.ajax.reload();
 
-                            // 2. Notificación Toast no intrusiva al eliminar
                             Toast.fire({
                                 icon: 'success',
                                 title: response.message
