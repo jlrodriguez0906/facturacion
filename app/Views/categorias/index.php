@@ -1,78 +1,52 @@
 <?= $this->extend('layouts/main') ?>
 
-<?= $this->section('title') ?>
-Categorías
-<?= $this->endSection() ?>
+<?= $this->section('title') ?>Categorías<?= $this->endSection() ?>
 
-<?= $this->section('page_title') ?>
-Administración de Categorías
+<?= $this->section('page_title') ?>Administración de Categorías<?= $this->endSection() ?>
+
+<!-- Cargar CSS de DataTables en el <head> -->
+<?= $this->section('styles') ?>
+
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="container-fluid">
-    <div class="card mb-4 shadow-sm">
-        <div class="card-header d-flex align-items-center justify-content-between">
-            <button type="button" class="btn btn-primary" onclick="nuevaCategoria()">
-                <i class="bi bi-plus-circle me-1"></i> Nueva Categoría
-            </button>
-            
-            <div class="input-group" style="width: 250px;">
-                <input type="text" id="tablaFiltro" class="form-control" placeholder="Buscar categoría...">
-                <span class="input-group-text"><i class="bi bi-search"></i></span>
-            </div>
-        </div>
-        
-        <div class="card-body p-0 table-responsive">
-            <table class="table table-hover align-middle mb-0" id="tablaCategorias">
-                <thead class="table-light">
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title">Listado de Categorías</h3>
+        <button type="button" class="btn btn-primary btn-sm ms-auto" onclick="abrirModalCrear()">
+            <i class="bi bi-plus-lg"></i> Nueva Categoría
+        </button>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="tablaCategorias" class="table table-striped table-hover w-100">
+                <thead>
                     <tr>
-                        <th style="width: 80px;" class="text-center">#</th>
-                        <th>Nombre de Categoría</th>
-                        <th style="width: 120px;" class="text-center">Acciones</th>
+                        <th style="width: 100px;">Acciones</th>
+                        <th>ID</th>
+                        <th>Nombre de la Categoría</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <?php if (!empty($categorias)): ?>
-                        <?php foreach ($categorias as $key => $c): ?>
-                            <tr id="row-<?= $c['id_categoria'] ?>">
-                                <td class="text-center fw-bold"><?= $key + 1 ?></td>
-                                <td class="col-nombre"><?= esc($c['nombre']) ?></td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-outline-warning me-1" onclick="editarCategoria(<?= $c['id_categoria'] ?>)" title="Editar">
-                                        <i class="bi bi-pencil-square"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-danger" onclick="eliminarCategoria(<?= $c['id_categoria'] ?>)" title="Eliminar">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr id="sinRegistros">
-                            <td colspan="3" class="text-center text-muted py-4">No hay categorías registradas.</td>
-                        </tr>
-                    <?php endif; ?>
-                </tbody>
+                <tbody></tbody>
             </table>
         </div>
     </div>
 </div>
 
-<!-- Modal Emergente para Registro / Edición -->
-<div class="modal fade" id="modalCategoria" tabindex="-1" aria-labelledby="modalCategoriaLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+<!-- Modal Registrar / Editar -->
+<div class="modal fade" id="modalCategoria" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalCategoriaLabel">Nueva Categoría</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            <form id="formCategoria">
+            <form id="formCategoria" autocomplete="off">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Nueva Categoría</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
                 <div class="modal-body">
                     <input type="hidden" id="id_categoria" name="id_categoria">
-                    
                     <div class="mb-3">
-                        <label for="nombre" class="form-label">Nombre de la Categoría <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="nombre" name="nombre" placeholder="Ej. Bebidas, Lácteos, Baterías..." required>
+                        <label for="nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="nombre" name="nombre" placeholder="Ej. Lácteos, Bebidas">
                         <div class="invalid-feedback" id="error-nombre"></div>
                     </div>
                 </div>
@@ -84,114 +58,128 @@ Administración de Categorías
         </div>
     </div>
 </div>
+<?= $this->endSection() ?>
 
-<!-- Scripts interactivos (AJAX y Búsqueda en tiempo real) -->
+<!-- Cargar JS específicos de esta vista al final -->
+<?= $this->section('scripts') ?>
+
+
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    const modalElement = document.getElementById('modalCategoria');
-    const modalObj = new bootstrap.Modal(modalElement);
-    const form = document.getElementById('formCategoria');
-    const inputFiltro = document.getElementById('tablaFiltro');
+let tablaCategorias;
+const modalElement = document.getElementById('modalCategoria');
+const modalBS = new bootstrap.Modal(modalElement);
 
-    // Resetear formulario al abrir modal para "Nueva Categoría"
-    window.nuevaCategoria = function() {
-        form.reset();
-        document.getElementById('id_categoria').value = '';
-        document.getElementById('modalCategoriaLabel').textContent = 'Nueva Categoría';
-        limpiarErrores();
-        modalObj.show();
-    };
-
-    // Filtro en tiempo real en la tabla
-    inputFiltro.addEventListener('keyup', function() {
-        const query = this.value.toLowerCase();
-        const filas = document.querySelectorAll('#tablaCategorias tbody tr');
-
-        filas.forEach(fila => {
-            const nombreCol = fila.querySelector('.col-nombre');
-            if (nombreCol) {
-                const text = nombreCol.textContent.toLowerCase();
-                fila.style.display = text.includes(query) ? '' : 'none';
-            }
-        });
+$(document).ready(function() {
+    tablaCategorias = $('#tablaCategorias').DataTable({
+        "ajax": "<?= base_url('categorias/getCategorias') ?>",
+        "columns": [
+            {
+                "data": null,
+                "orderable": false,
+                "render": function(data, type, row) {
+                    return `
+                        <button class="btn btn-warning btn-sm me-1" onclick="editarCategoria(${row.id_categoria})" title="Editar">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="eliminarCategoria(${row.id_categoria})" title="Eliminar">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    `;
+                }
+            },
+            { "data": "id_categoria" },
+            { "data": "nombre" }
+        ],
+        "language": {
+            "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json"
+        }
     });
 
-    // Guardar mediante AJAX
-    form.addEventListener('submit', function(e) {
+    $('#formCategoria').on('submit', function(e) {
         e.preventDefault();
         limpiarErrores();
 
-        const formData = new FormData(form);
-
-        fetch('<?= base_url('categorias/guardar') ?>', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                modalObj.hide();
-                location.reload(); // Recarga la vista para refrescar los datos
-            } else if (data.status === 'error' && data.errors) {
-                mostrarErrores(data.errors);
-            }
-        })
-        .catch(err => console.error("Error al procesar:", err));
-    });
-
-    // Obtener datos para editar
-    window.editarCategoria = function(id) {
-        limpiarErrores();
-        fetch(`<?= base_url('categorias/obtener/') ?>${id}`, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(res => res.json())
-        .then(res => {
-            if (res.status === 'success') {
-                document.getElementById('id_categoria').value = res.data.id_categoria;
-                document.getElementById('nombre').value = res.data.nombre;
-                document.getElementById('modalCategoriaLabel').textContent = 'Editar Categoría';
-                modalObj.show();
-            } else {
-                alert(res.message);
+        $.ajax({
+            url: "<?= base_url('categorias/guardar') ?>",
+            type: "POST",
+            data: $(this).serialize(),
+            dataType: "JSON",
+            success: function(response) {
+                if (response.status === 'success') {
+                    modalBS.hide();
+                    tablaCategorias.ajax.reload();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: response.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                } else if (response.status === 'error') {
+                    if (response.errors && response.errors.nombre) {
+                        $('#nombre').addClass('is-invalid');
+                        $('#error-nombre').text(response.errors.nombre);
+                    }
+                }
             }
         });
-    };
+    });
+});
 
-    // Eliminar registro
-    window.eliminarCategoria = function(id) {
-        if (confirm('¿Está seguro de eliminar esta categoría?')) {
-            fetch(`<?= base_url('categorias/eliminar/') ?>${id}`, {
-                method: 'DELETE',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
-            .then(res => res.json())
-            .then(res => {
-                if (res.status === 'success') {
-                    const fila = document.getElementById(`row-${id}`);
-                    if (fila) fila.remove();
-                } else {
-                    alert(res.message);
+function abrirModalCrear() {
+    $('#formCategoria')[0].reset();
+    $('#id_categoria').val('');
+    limpiarErrores();
+    $('#modalTitle').text('Nueva Categoría');
+    modalBS.show();
+}
+
+function editarCategoria(id) {
+    limpiarErrores();
+    $.get("<?= base_url('categorias/obtener/') ?>" + id, function(response) {
+        if (response.status === 'success') {
+            $('#id_categoria').val(response.data.id_categoria);
+            $('#nombre').val(response.data.nombre);
+            $('#modalTitle').text('Editar Categoría');
+            modalBS.show();
+        } else {
+            Swal.fire('Error', response.message, 'error');
+        }
+    });
+}
+
+function eliminarCategoria(id) {
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: "Esta acción no se puede deshacer.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: "<?= base_url('categorias/eliminar/') ?>" + id,
+                type: "DELETE",
+                dataType: "JSON",
+                success: function(response) {
+                    if (response.status === 'success') {
+                        tablaCategorias.ajax.reload();
+                        Swal.fire('Eliminado', response.message, 'success');
+                    } else {
+                        Swal.fire('Error', response.message, 'error');
+                    }
                 }
             });
         }
-    };
+    });
+}
 
-    function limpiarErrores() {
-        document.getElementById('nombre').classList.remove('is-invalid');
-        document.getElementById('error-nombre').textContent = '';
-    }
-
-    function mostrarErrores(errors) {
-        if (errors.nombre) {
-            const inputNombre = document.getElementById('nombre');
-            inputNombre.classList.add('is-invalid');
-            document.getElementById('error-nombre').textContent = errors.nombre;
-        }
-    }
-});
+function limpiarErrores() {
+    $('#nombre').removeClass('is-invalid');
+    $('#error-nombre').text('');
+}
 </script>
 <?= $this->endSection() ?>

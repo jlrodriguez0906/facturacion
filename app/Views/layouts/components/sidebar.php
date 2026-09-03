@@ -43,6 +43,13 @@
                     </ul>
                 </li>
 
+                <li class="nav-item">
+                    <a href="<?= base_url('categorias') ?>" class="nav-link <?= url_is('categorias*') ? 'active' : '' ?>">
+                        <i class="nav-icon bi bi-tags"></i>
+                        <p>Categorías</p>
+                    </a>
+                </li>
+
             </ul>
         </nav>
     </div>
