@@ -19,12 +19,12 @@
     </div>
     <div class="card-body">
         <div class="table-responsive">
-            <table id="tablaCategorias" class="table table-striped table-hover w-100">
+            <table id="tablaCategorias" class="table table-striped table-bordered table-hover w-100">
                 <thead>
                     <tr>
-                        <th style="width: 100px;">Acciones</th>
-                        <th>ID</th>
+                        <th style="width: 80px;" class="text-center">ID</th>
                         <th>Nombre de la Categoría</th>
+                        <th style="width: 120px;" class="text-center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -76,7 +76,12 @@
 
         tablaCategorias = $('#tablaCategorias').DataTable({
             "ajax": "<?= base_url('categorias/getCategorias') ?>",
-            "columns": [
+            "columns": [{
+                    "data": "id_categoria"
+                },
+                {
+                    "data": "nombre"
+                },
                 {
                     "data": null,
                     "orderable": false,
@@ -90,9 +95,7 @@
                             </button>
                         `;
                     }
-                },
-                { "data": "id_categoria" },
-                { "data": "nombre" }
+                }
             ],
             "language": typeof dtLanguageEs !== 'undefined' ? dtLanguageEs : {
                 "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json"
@@ -113,7 +116,7 @@
                     if (response.status === 'success') {
                         modalBS.hide();
                         tablaCategorias.ajax.reload();
-                        
+
                         Toast.fire({
                             icon: 'success',
                             title: response.message
