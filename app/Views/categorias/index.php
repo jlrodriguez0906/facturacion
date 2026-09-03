@@ -34,7 +34,7 @@
 </div>
 
 <!-- Modal Registrar / Editar -->
-<div class="modal fade" id="modalCategoria" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalCategoria" tabindex="-1" aria-labelledby="modalTitle">
     <div class="modal-dialog">
         <div class="modal-content">
             <form id="formCategoria" autocomplete="off">
@@ -63,21 +63,44 @@
 <!-- Cargar JS específicos de esta vista al final -->
 <?= $this->section('scripts') ?>
 
-
 <script>
-let tablaCategorias;
-const modalElement = document.getElementById('modalCategoria');
-const modalBS = new bootstrap.Modal(modalElement);
+    let tablaCategorias;
+    const modalElement = document.getElementById('modalCategoria');
+    const modalBS = new bootstrap.Modal(modalElement);
 
-$(document).ready(function() {
-    tablaCategorias = $('#tablaCategorias').DataTable({
-        "ajax": "<?= base_url('categorias/getCategorias') ?>",
-        "columns": [
-            {
-                "data": null,
-                "orderable": false,
-                "render": function(data, type, row) {
-                    return `
+    // Configuración global para alertas emergentes tipo Toast
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer);
+            toast.addEventListener('mouseleave', Swal.resumeTimer);
+        }
+    });
+
+    $(document).ready(function() {
+        // 1. Quitar el foco antes de que el modal comience a mostrarse
+        $('#modalCategoria').on('show.bs.modal', function() {
+            if (document.activeElement) {
+                document.activeElement.blur();
+            }
+        });
+
+        // 2. Al terminar de abrirse, enfocar el campo de texto
+        $('#modalCategoria').on('shown.bs.modal', function() {
+            $('#nombre').trigger('focus');
+        });
+
+        tablaCategorias = $('#tablaCategorias').DataTable({
+            "ajax": "<?= base_url('categorias/getCategorias') ?>",
+            "columns": [{
+                    "data": null,
+                    "orderable": false,
+                    "render": function(data, type, row) {
+                        return `
                         <button class="btn btn-warning btn-sm me-1" onclick="editarCategoria(${row.id_categoria})" title="Editar">
                             <i class="bi bi-pencil-square"></i>
                         </button>
@@ -85,101 +108,128 @@ $(document).ready(function() {
                             <i class="bi bi-trash"></i>
                         </button>
                     `;
-                }
-            },
-            { "data": "id_categoria" },
-            { "data": "nombre" }
-        ],
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json"
-        }
-    });
-
-    $('#formCategoria').on('submit', function(e) {
-        e.preventDefault();
-        limpiarErrores();
-
-        $.ajax({
-            url: "<?= base_url('categorias/guardar') ?>",
-            type: "POST",
-            data: $(this).serialize(),
-            dataType: "JSON",
-            success: function(response) {
-                if (response.status === 'success') {
-                    modalBS.hide();
-                    tablaCategorias.ajax.reload();
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Éxito',
-                        text: response.message,
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                } else if (response.status === 'error') {
-                    if (response.errors && response.errors.nombre) {
-                        $('#nombre').addClass('is-invalid');
-                        $('#error-nombre').text(response.errors.nombre);
                     }
+                },
+                {
+                    "data": "id_categoria"
+                },
+                {
+                    "data": "nombre"
                 }
+            ],
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json"
             }
         });
-    });
-});
 
-function abrirModalCrear() {
-    $('#formCategoria')[0].reset();
-    $('#id_categoria').val('');
-    limpiarErrores();
-    $('#modalTitle').text('Nueva Categoría');
-    modalBS.show();
-}
+        $('#formCategoria').on('submit', function(e) {
+            e.preventDefault();
 
-function editarCategoria(id) {
-    limpiarErrores();
-    $.get("<?= base_url('categorias/obtener/') ?>" + id, function(response) {
-        if (response.status === 'success') {
-            $('#id_categoria').val(response.data.id_categoria);
-            $('#nombre').val(response.data.nombre);
-            $('#modalTitle').text('Editar Categoría');
-            modalBS.show();
-        } else {
-            Swal.fire('Error', response.message, 'error');
-        }
-    });
-}
+            // Quita el foco de cualquier elemento (especialmente al presionar Enter)
+            if (document.activeElement) {
+                document.activeElement.blur();
+            }
 
-function eliminarCategoria(id) {
-    Swal.fire({
-        title: '¿Estás seguro?',
-        text: "Esta acción no se puede deshacer.",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => {
-        if (result.isConfirmed) {
+            limpiarErrores();
+
             $.ajax({
-                url: "<?= base_url('categorias/eliminar/') ?>" + id,
-                type: "DELETE",
+                url: "<?= base_url('categorias/guardar') ?>",
+                type: "POST",
+                data: $(this).serialize(),
                 dataType: "JSON",
                 success: function(response) {
                     if (response.status === 'success') {
+                        modalBS.hide();
                         tablaCategorias.ajax.reload();
-                        Swal.fire('Eliminado', response.message, 'success');
-                    } else {
-                        Swal.fire('Error', response.message, 'error');
+                        
+                        // Notificación Toast de éxito
+                        Toast.fire({
+                            icon: 'success',
+                            title: response.message
+                        });
+                    } else if (response.status === 'error') {
+                        if (response.errors && response.errors.nombre) {
+                            $('#nombre').addClass('is-invalid');
+                            $('#error-nombre').text(response.errors.nombre);
+                            // Devolver el foco al campo con error
+                            $('#nombre').trigger('focus');
+                        }
                     }
                 }
             });
-        }
+        });
     });
-}
 
-function limpiarErrores() {
-    $('#nombre').removeClass('is-invalid');
-    $('#error-nombre').text('');
-}
+    // 3. Modificación de la función abrirModalCrear
+    function abrirModalCrear() {
+        if (document.activeElement) {
+            document.activeElement.blur(); // Quita el foco del botón "Nueva Categoría"
+        }
+        $('#formCategoria')[0].reset();
+        $('#id_categoria').val('');
+        limpiarErrores();
+        $('#modalTitle').text('Nueva Categoría');
+        modalBS.show();
+    }
+
+    function editarCategoria(id) {
+        limpiarErrores();
+        $.get("<?= base_url('categorias/obtener/') ?>" + id, function(response) {
+            if (response.status === 'success') {
+                $('#id_categoria').val(response.data.id_categoria);
+                $('#nombre').val(response.data.nombre);
+                $('#modalTitle').text('Editar Categoría');
+                modalBS.show();
+            } else {
+                Toast.fire({
+                    icon: 'error',
+                    title: response.message
+                });
+            }
+        });
+    }
+
+    function eliminarCategoria(id) {
+        // 1. Pregunta de seguridad (Requiere confirmación explícita)
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "Esta acción no se puede deshacer.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: "<?= base_url('categorias/eliminar/') ?>" + id,
+                    type: "DELETE",
+                    dataType: "JSON",
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            tablaCategorias.ajax.reload();
+
+                            // 2. Notificación Toast no intrusiva al eliminar
+                            Toast.fire({
+                                icon: 'success',
+                                title: response.message
+                            });
+                        } else {
+                            Toast.fire({
+                                icon: 'error',
+                                title: response.message
+                            });
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    function limpiarErrores() {
+        $('#nombre').removeClass('is-invalid');
+        $('#error-nombre').text('');
+    }
 </script>
 <?= $this->endSection() ?>

@@ -29,58 +29,44 @@ class CategoriasController extends BaseController
         return $this->response->setJSON(['data' => $categorias]);
     }
 
-   public function guardar()
-{
-    if (!$this->request->isAJAX()) {
-        return $this->response->setStatusCode(404);
-    }
+    public function guardar()
+    {
+        if (!$this->request->isAJAX()) {
+            return $this->response->setStatusCode(404);
+        }
 
-    $id = $this->request->getPost('id_categoria');
-    $nombre = trim($this->request->getPost('nombre'));
+        $id     = $this->request->getPost('id_categoria');
+        $nombre = trim((string) $this->request->getPost('nombre'));
 
-    // Definición dinámica de la regla is_unique según exista un ID o no
-    $reglaNombre = 'required|min_length[3]|max_length[50]';
-    if (!empty($id)) {
-        $reglaNombre .= "|is_unique[categoria.nombre,id_categoria,{$id}]";
-    } else {
-        $reglaNombre .= '|is_unique[categoria.nombre]';
-    }
+        $data = [
+            'nombre' => $nombre
+        ];
 
-    $validationRules = [
-        'nombre' => [
-            'label' => 'Nombre',
-            'rules' => $reglaNombre,
-            'errors' => [
-                'required'   => 'El nombre de la categoría es obligatorio.',
-                'min_length' => 'El nombre debe tener al menos 3 caracteres.',
-                'max_length' => 'El nombre no puede exceder los 50 caracteres.',
-                'is_unique'  => 'Esta categoría ya existe.',
-            ]
-        ]
-    ];
+        if (!empty($id)) {
+            // En edición usas update(). Pasa el ID explícitamente para que {id_categoria} se reemplace
+            if (!$this->categoriaModel->update($id, $data)) {
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'errors' => $this->categoriaModel->errors()
+                ]);
+            }
+            $message = 'Categoría actualizada correctamente.';
+        } else {
+            // En inserción usas insert()
+            if (!$this->categoriaModel->insert($data)) {
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'errors' => $this->categoriaModel->errors()
+                ]);
+            }
+            $message = 'Categoría registrada con éxito.';
+        }
 
-    if (!$this->validate($validationRules)) {
         return $this->response->setJSON([
-            'status' => 'error',
-            'errors' => $this->validator->getErrors()
+            'status'  => 'success',
+            'message' => $message
         ]);
     }
-
-    $data = ['nombre' => $nombre];
-
-    if (!empty($id)) {
-        $this->categoriaModel->update($id, $data);
-        $message = 'Categoría actualizada correctamente.';
-    } else {
-        $this->categoriaModel->insert($data);
-        $message = 'Categoría registrada con éxito.';
-    }
-
-    return $this->response->setJSON([
-        'status'  => 'success',
-        'message' => $message
-    ]);
-}
 
     public function obtener($id)
     {
