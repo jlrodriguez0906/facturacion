@@ -79,6 +79,13 @@
                     </a>
                 </li>
 
+                <li class="nav-item">
+                    <a href="<?= base_url('productos') ?>" class="nav-link <?= url_is('productos*') ? 'active' : '' ?>">
+                        <i class="nav-icon fas fa-boxes"></i>
+                        <p>Productos</p>
+                    </a>
+                </li>
+
             </ul>
         </nav>
     </div>
