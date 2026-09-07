@@ -19,6 +19,7 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
     $routes->get('marcas', 'MarcasController::index');
     $routes->get('clientes', 'ClientesController::index');
     $routes->get('proveedores', 'ProveedoresController::index');
+    $routes->get('usuarios', 'UsuariosController::index');
 });
 
 // 3. Rutas de la API / Endpoints (Requieren Login Y Petición AJAX)
@@ -51,4 +52,13 @@ $routes->group('proveedores', ['filter' => ['auth', 'ajax']], function($routes) 
     $routes->post('guardar', 'ProveedoresController::guardar');
     $routes->get('obtener/(:num)', 'ProveedoresController::obtener/$1');
     $routes->delete('eliminar/(:num)', 'ProveedoresController::eliminar/$1');
+});
+
+
+// Endpoints AJAX para el módulo Usuarios
+$routes->group('usuarios', ['filter' => ['auth', 'ajax']], function($routes) {
+    $routes->get('getUsuarios', 'UsuariosController::getUsuarios');
+    $routes->post('guardar', 'UsuariosController::guardar');
+    $routes->get('obtener/(:num)', 'UsuariosController::obtener/$1');
+    $routes->delete('eliminar/(:num)', 'UsuariosController::eliminar/$1');
 });

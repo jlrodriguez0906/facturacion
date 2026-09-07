@@ -71,6 +71,14 @@
                     </a>
                 </li>
 
+                <!-- Opción: Gestión de Usuarios -->
+                <li class="nav-item">
+                    <a href="<?= base_url('usuarios') ?>" class="nav-link <?= url_is('usuarios*') ? 'active' : '' ?>">
+                        <i class="nav-icon bi bi-people"></i>
+                        <p>Usuarios</p>
+                    </a>
+                </li>
+
             </ul>
         </nav>
     </div>
