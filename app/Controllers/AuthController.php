@@ -10,7 +10,7 @@ class AuthController extends BaseController
     {
         // Si ya está autenticado, redirigir al módulo principal
         if (session()->get('isLoggedIn')) {
-            return redirect()->to(base_url('facturacion'));
+            return redirect()->to(site_url('facturas'));
         }
         return view('auth/login');
     }
@@ -54,7 +54,7 @@ class AuthController extends BaseController
             'isLoggedIn' => true
         ]);
 
-        return redirect()->to(base_url('facturacion'));
+        return redirect()->to(site_url('facturas'));
     }
 
     public function logout()

@@ -19,7 +19,7 @@
         <a href="#" class="nav-link dropdown-toggle d-flex align-items-center gap-2" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bi bi-person-circle fs-5 text-primary"></i>
             <span class="d-none d-md-inline fw-semibold text-body">
-                <?= esc(session('name') ?? 'Administrador') ?>
+                <?= esc(session('nombre') ?? 'Usuario') ?>
             </span>
         </a>
 
@@ -29,14 +29,14 @@
                 <div class="mb-2">
                     <i class="bi bi-person-circle text-secondary display-6"></i>
                 </div>
-                <p class="mb-0 fw-bold text-truncate" title="<?= esc(session('name')) ?>">
-                    <?= esc(session('name') ?? 'Usuario Administrador') ?>
+                <p class="mb-0 fw-bold text-truncate" title="<?= esc(session('nombre') ?? 'Usuario') ?>">
+                    <?= esc(session('nombre') ?? 'Usuario') ?>
                 </p>
                 <small class="text-body-secondary d-block mb-2">
-                    @<?= esc(session('username') ?? 'admin') ?>
+                    <?= esc(session('correo') ?? '') ?>
                 </small>
                 <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1">
-                    <?= esc(session('role') ?? 'Administrador') ?>
+                    <?= esc(ucfirst((string) (session('rol') ?? ''))) ?>
                 </span>
             </li>
 

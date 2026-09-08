@@ -9,7 +9,7 @@
         <nav class="mt-2">
             <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
 
-                <!-- Opción Simple: Dashboard -->
+                <!-- Opción Accesible por Administrador y Encargado -->
                 <li class="nav-item">
                     <a href="<?= base_url('dashboard') ?>" class="nav-link <?= url_is('dashboard') ? 'active' : '' ?>">
                         <i class="nav-icon bi bi-speedometer"></i>
@@ -17,74 +17,60 @@
                     </a>
                 </li>
 
-                <!-- Opción con Desplegable: Facturación -->
-                <!-- url_is('facturas*') detecta 'facturas', 'facturas/nueva', 'facturas/editar/1', etc. -->
-                <li class="nav-item <?= url_is('facturas*') ? 'menu-open' : '' ?>">
-                    <a href="#" class="nav-link <?= url_is('facturas*') ? 'active' : '' ?>">
+                <!-- Opción Accesible por Administrador y Encargado: Facturación -->
+                <li class="nav-item">
+                    <a href="<?= base_url('facturas') ?>" class="nav-link <?= url_is('facturas*') ? 'active' : '' ?>">
                         <i class="nav-icon bi bi-receipt"></i>
-                        <p>
-                            Facturación
-                            <i class="nav-arrow bi bi-chevron-right"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="<?= base_url('facturas/nueva') ?>" class="nav-link <?= url_is('facturas/nueva') ? 'active' : '' ?>">
-                                <i class="nav-icon bi bi-circle"></i>
-                                <p>Nueva Factura</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="<?= base_url('facturas') ?>" class="nav-link <?= url_is('facturas') ? 'active' : '' ?>">
-                                <i class="nav-icon bi bi-circle"></i>
-                                <p>Historial</p>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-
-                <li class="nav-item">
-                    <a href="<?= base_url('categorias') ?>" class="nav-link <?= url_is('categorias*') ? 'active' : '' ?>">
-                        <i class="nav-icon bi bi-tags"></i>
-                        <p>Categorías</p>
+                        <p>Facturación</p>
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a href="<?= base_url('marcas') ?>" class="nav-link <?= url_is('marcas*') ? 'active' : '' ?>">
-                        <i class="nav-icon bi bi-bookmark-star"></i>
-                        <p>Marcas</p>
-                    </a>
-                </li>
+                <!-- Opciones Exclusivas para el Administrador -->
+                <?php if (session()->get('rol') === 'administrador'): ?>
 
-                <li class="nav-item">
-                    <a href="<?= base_url('clientes') ?>" class="nav-link <?= url_is('clientes*') ? 'active' : '' ?>">
-                        <i class="nav-icon bi bi-people"></i>
-                        <p>Clientes</p>
-                    </a>
-                </li>
+                    <li class="nav-item">
+                        <a href="<?= base_url('admin/categorias') ?>" class="nav-link <?= url_is('admin/categorias*') ? 'active' : '' ?>">
+                            <i class="nav-icon bi bi-tags"></i>
+                            <p>Categorías</p>
+                        </a>
+                    </li>
 
-                <li class="nav-item">
-                    <a href="<?= base_url('proveedores') ?>" class="nav-link <?= url_is('proveedores*') ? 'active' : '' ?>">
-                        <i class="nav-icon bi bi-truck"></i>
-                        <p>Proveedores</p>
-                    </a>
-                </li>
+                    <li class="nav-item">
+                        <a href="<?= base_url('admin/marcas') ?>" class="nav-link <?= url_is('admin/marcas*') ? 'active' : '' ?>">
+                            <i class="nav-icon bi bi-bookmark-star"></i>
+                            <p>Marcas</p>
+                        </a>
+                    </li>
 
-                <!-- Opción: Gestión de Usuarios -->
-                <li class="nav-item">
-                    <a href="<?= base_url('usuarios') ?>" class="nav-link <?= url_is('usuarios*') ? 'active' : '' ?>">
-                        <i class="nav-icon bi bi-people"></i>
-                        <p>Usuarios</p>
-                    </a>
-                </li>
+                    <li class="nav-item">
+                        <a href="<?= base_url('admin/clientes') ?>" class="nav-link <?= url_is('admin/clientes*') ? 'active' : '' ?>">
+                            <i class="nav-icon bi bi-people"></i>
+                            <p>Clientes</p>
+                        </a>
+                    </li>
 
-                <li class="nav-item">
-                    <a href="<?= base_url('productos') ?>" class="nav-link <?= url_is('productos*') ? 'active' : '' ?>">
-                        <i class="nav-icon fas fa-boxes"></i>
-                        <p>Productos</p>
-                    </a>
-                </li>
+                    <li class="nav-item">
+                        <a href="<?= base_url('admin/proveedores') ?>" class="nav-link <?= url_is('admin/proveedores*') ? 'active' : '' ?>">
+                            <i class="nav-icon bi bi-truck"></i>
+                            <p>Proveedores</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="<?= base_url('admin/usuarios') ?>" class="nav-link <?= url_is('admin/usuarios*') ? 'active' : '' ?>">
+                            <i class="nav-icon bi bi-person-gear"></i>
+                            <p>Usuarios</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="<?= base_url('admin/productos') ?>" class="nav-link <?= url_is('admin/productos*') ? 'active' : '' ?>">
+                            <i class="nav-icon bi bi-box-seam"></i>
+                            <p>Productos</p>
+                        </a>
+                    </li>
+
+                <?php endif; ?>
 
             </ul>
         </nav>

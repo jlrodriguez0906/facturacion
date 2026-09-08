@@ -36,6 +36,7 @@ class Filters extends BaseFilters
         'performance'   => PerformanceMetrics::class,
         'auth'          => \App\Filters\AuthFilter::class, // <-- Añadir esta línea
         'ajax'          => \App\Filters\AjaxFilter::class, 
+        'role'          => \App\Filters\RoleFilter::class,
     ];
 
     /**
