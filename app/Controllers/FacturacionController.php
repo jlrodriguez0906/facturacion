@@ -37,6 +37,65 @@ class FacturacionController extends BaseController
         return $this->response->setJSON(['data' => $ventas]);
     }
 
+    // app/Controllers/FacturacionController.php
+
+    public function imprimir($id)
+    {
+        $factura = $this->ventaModel
+            ->select('venta.*, cliente.nombre AS cliente_nombre, cliente.identificacion AS cliente_identificacion, cliente.telefono AS cliente_telefono, cliente.correo AS cliente_correo, usuario.nombre AS usuario_nombre')
+            ->join('cliente', 'cliente.id_cliente = venta.id_cliente')
+            ->join('usuario', 'usuario.id_usuario = venta.id_usuario')
+            ->where('venta.id_venta', $id)
+            ->first();
+
+        if (!$factura) {
+            return redirect()->to(site_url('facturas'))->with('error', 'Factura no encontrada');
+        }
+
+        $detalles = $this->detalleVentaModel->getDetallesPorVenta($id);
+
+        $data = [
+            'factura'  => $factura,
+            'detalles' => $detalles
+        ];
+
+        return view('facturacion/pdf_template', $data);
+    }
+
+    public function pdf($idVenta)
+    {
+        $ventaModel = new VentaModel();
+        $detalleModel = new DetalleVentaModel();
+        $clienteModel = new ClienteModel();
+
+        // 1. Obtener la cabecera de la factura
+        $factura = $ventaModel->find($idVenta);
+
+        if (!$factura) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound("Factura no encontrada");
+        }
+
+        // 2. Obtener los datos del cliente asociado
+        $idCliente = is_array($factura) ? ($factura['cliente_id'] ?? $factura['id_cliente'] ?? null) : $factura->id_cliente;
+        $cliente = $clienteModel->find($idCliente);
+
+        // 3. Obtener los productos reales de la factura haciendo JOIN con la tabla de productos
+        $detalles = $detalleModel
+            ->select('detalle_ventas.*, productos.nombre as producto_nombre, productos.precio as precio_referencia')
+            ->join('productos', 'productos.id = detalle_ventas.producto_id', 'left')
+            ->where('detalle_ventas.venta_id', $idVenta) // Asegúrate de que el campo coincida (venta_id / id_venta)
+            ->findAll();
+
+        // 4. Enviar todas las variables a la vista
+        $data = [
+            'factura'  => $factura,
+            'cliente'  => $cliente,
+            'detalles' => $detalles
+        ];
+
+        return view('facturacion/pdf_template', $data);
+    }
+
     public function buscarClientes()
     {
         if (!$this->request->isAJAX()) {
@@ -49,8 +108,8 @@ class FacturacionController extends BaseController
         }
 
         $clientes = $this->clienteModel->like('identificacion', $term)
-                                       ->orLike('nombre', $term)
-                                       ->findAll(10);
+            ->orLike('nombre', $term)
+            ->findAll(10);
 
         return $this->response->setJSON($clientes);
     }
@@ -67,8 +126,8 @@ class FacturacionController extends BaseController
         }
 
         $productos = $this->productoModel->like('codigo_barras', $term)
-                                         ->orLike('nombre', $term)
-                                         ->findAll(10);
+            ->orLike('nombre', $term)
+            ->findAll(10);
 
         return $this->response->setJSON($productos);
     }
@@ -108,7 +167,7 @@ class FacturacionController extends BaseController
 
             if ($prod['stock'] < $cant) {
                 return $this->response->setJSON([
-                    'status' => 'error', 
+                    'status' => 'error',
                     'message' => 'Stock insuficiente para "' . $prod['nombre'] . '". Disponible: ' . $prod['stock'] . ', Solicitado: ' . $cant
                 ]);
             }
@@ -172,10 +231,10 @@ class FacturacionController extends BaseController
         }
 
         $venta = $this->ventaModel->select('venta.*, cliente.nombre AS cliente_nombre, cliente.identificacion AS cliente_identificacion, cliente.telefono, cliente.correo, usuario.nombre AS usuario_nombre')
-                                  ->join('cliente', 'cliente.id_cliente = venta.id_cliente')
-                                  ->join('usuario', 'usuario.id_usuario = venta.id_usuario')
-                                  ->where('venta.id_venta', $id)
-                                  ->first();
+            ->join('cliente', 'cliente.id_cliente = venta.id_cliente')
+            ->join('usuario', 'usuario.id_usuario = venta.id_usuario')
+            ->where('venta.id_venta', $id)
+            ->first();
 
         if (!$venta) {
             return $this->response->setJSON(['status' => 'error', 'message' => 'Factura no encontrada.']);

@@ -24,6 +24,9 @@ $routes->group('', ['filter' => ['auth', 'role:administrador,encargado']], stati
     $routes->get('dashboard', 'Home::index');
     $routes->get('facturas', 'FacturacionController::index');
     $routes->get('facturas/nueva', 'FacturacionController::index');
+    
+    // RUTA DE IMPRESIÓN CORREGIDA: Se ubica aquí para que no requiera el filtro AJAX
+    $routes->get('facturas/imprimir/(:num)', 'FacturacionController::imprimir/$1');
 });
 
 // Endpoints AJAX - Facturación

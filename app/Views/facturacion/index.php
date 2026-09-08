@@ -20,7 +20,7 @@
                         <th>Cliente</th>
                         <th>Atendido por</th>
                         <th class="text-end">Total ($)</th>
-                        <th style="width: 100px;" class="text-center">Acciones</th>
+                        <th style="width: 120px;" class="text-center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -177,6 +177,9 @@
                 </div>
             </div>
             <div class="modal-footer">
+                <button type="button" class="btn btn-success" onclick="imprimirFacturaActual()">
+                    <i class="bi bi-printer me-1"></i> Imprimir
+                </button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
@@ -188,10 +191,14 @@
 <script>
 let tablaVentas;
 let productosFactura = [];
-const modalNuevaVenta = new bootstrap.Modal(document.getElementById('modalNuevaVenta'));
-const modalVerDetalle = new bootstrap.Modal(document.getElementById('modalVerDetalle'));
+let modalNuevaVenta;
+let modalVerDetalle;
+let facturaActualId = null;
 
 $(document).ready(function() {
+    modalNuevaVenta = new bootstrap.Modal(document.getElementById('modalNuevaVenta'));
+    modalVerDetalle = new bootstrap.Modal(document.getElementById('modalVerDetalle'));
+
     // 1. Inicializar DataTable
     tablaVentas = $('#tablaVentas').DataTable({
         "ajax": "<?= base_url('facturas/getVentas') ?>",
@@ -217,9 +224,14 @@ $(document).ready(function() {
                 "className": "text-center",
                 "render": function(data, type, row) {
                     return `
-                        <button class="btn btn-info btn-sm text-white" onclick="verDetalleFactura(${row.id_venta})" title="Ver Detalle">
-                            <i class="bi bi-eye"></i>
-                        </button>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button class="btn btn-info text-white" onclick="verDetalleFactura(${row.id_venta})" title="Ver Detalle">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-success" onclick="imprimirFactura(${row.id_venta})" title="Imprimir Factura">
+                                <i class="bi bi-printer"></i>
+                            </button>
+                        </div>
                     `;
                 }
             }
@@ -239,10 +251,11 @@ $(document).ready(function() {
 
         $.get("<?= base_url('facturas/buscarClientes') ?>", { q: q }, function(data) {
             let resHtml = '';
-            if (data.length > 0) {
+            if (data && data.length > 0) {
                 data.forEach(c => {
+                    let nombreEscaped = c.nombre.replace(/'/g, "&apos;");
                     resHtml += `
-                        <button type="button" class="list-group-item list-group-item-action" onclick="seleccionarCliente(${c.id_cliente}, '${c.nombre}', '${c.identificacion}', '${c.telefono || ''}')">
+                        <button type="button" class="list-group-item list-group-item-action" onclick="seleccionarCliente(${c.id_cliente}, '${nombreEscaped}', '${c.identificacion}', '${c.telefono || ''}')">
                             <strong>${c.nombre}</strong> <small class="text-muted">(${c.identificacion})</small>
                         </button>
                     `;
@@ -264,12 +277,13 @@ $(document).ready(function() {
 
         $.get("<?= base_url('facturas/buscarProductos') ?>", { q: q }, function(data) {
             let resHtml = '';
-            if (data.length > 0) {
+            if (data && data.length > 0) {
                 data.forEach(p => {
-                    let sinStock = p.stock <= 0;
+                    let sinStock = parseInt(p.stock) <= 0;
+                    let nombreEscaped = p.nombre.replace(/'/g, "&apos;");
                     resHtml += `
                         <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center ${sinStock ? 'disabled bg-light' : ''}" 
-                                onclick="${sinStock ? '' : `agregarProducto(${p.id_producto}, '${p.codigo_barras || ''}', '${p.nombre.replace(/'/g, "\\'")}', ${p.precio_venta}, ${p.stock})`}">
+                                onclick="${sinStock ? '' : `agregarProducto(${p.id_producto}, '${p.codigo_barras || ''}', '${nombreEscaped}', ${p.precio_venta}, ${p.stock})`}">
                             <div>
                                 <strong>${p.nombre}</strong> <small class="text-muted">(${p.codigo_barras || 'Sin código'})</small>
                                 <br><small class="text-primary">$ ${parseFloat(p.precio_venta).toFixed(2)}</small>
@@ -320,11 +334,10 @@ function agregarProducto(id, codigo, nombre, precio, stock) {
     $('#resultados_producto').hide().empty();
     $('#buscar_producto').val('');
 
-    // Verificar si el producto ya existe en el detalle
     let existente = productosFactura.find(p => p.id_producto === id);
     if (existente) {
         if (existente.cantidad + 1 > stock) {
-            Toast.fire({ icon: 'warning', title: 'Supera el stock disponible.' });
+            mostrarMensaje('warning', 'Supera el stock disponible.');
             return;
         }
         existente.cantidad++;
@@ -350,7 +363,7 @@ function cambiarCantidad(idProducto, nuevaCantidad) {
         if (isNaN(cant) || cant <= 0) {
             prod.cantidad = 1;
         } else if (cant > prod.stock) {
-            Toast.fire({ icon: 'warning', title: `Stock máximo disponible: ${prod.stock}` });
+            mostrarMensaje('warning', `Stock máximo disponible: ${prod.stock}`);
             prod.cantidad = prod.stock;
         } else {
             prod.cantidad = cant;
@@ -392,7 +405,7 @@ function renderizarTablaDetalle() {
                 <td>
                     <input type="number" class="form-control form-control-sm text-center" 
                            value="${p.cantidad}" min="1" max="${p.stock}" 
-                           onchange="cambiarCantidad(${p.id_producto}, this.value)">
+                           oninput="cambiarCantidad(${p.id_producto}, this.value)">
                 </td>
                 <td class="text-end">$ ${p.precio.toFixed(2)}</td>
                 <td class="text-end fw-bold">$ ${subtotal.toFixed(2)}</td>
@@ -409,7 +422,7 @@ function renderizarTablaDetalle() {
 }
 
 function actualizarTotales(subtotalBase) {
-    let iva = subtotalBase * 0.15; // 15% IVA
+    let iva = subtotalBase * 0.15; // IVA 15%
     let total = subtotalBase + iva;
 
     $('#lblSubtotal').text(`$ ${subtotalBase.toFixed(2)}`);
@@ -421,12 +434,12 @@ function procesarVenta() {
     let idCliente = $('#id_cliente').val();
 
     if (!idCliente) {
-        Toast.fire({ icon: 'error', title: 'Debe seleccionar un cliente válido.' });
+        mostrarMensaje('error', 'Debe seleccionar un cliente válido.');
         return;
     }
 
     if (productosFactura.length === 0) {
-        Toast.fire({ icon: 'error', title: 'Debe agregar al menos un producto a la factura.' });
+        mostrarMensaje('error', 'Debe agregar al menos un producto a la factura.');
         return;
     }
 
@@ -434,7 +447,8 @@ function procesarVenta() {
         id_cliente: idCliente,
         productos: productosFactura.map(p => ({
             id_producto: p.id_producto,
-            cantidad: p.cantidad
+            cantidad: p.cantidad,
+            precio_unitario: p.precio
         }))
     };
 
@@ -443,7 +457,8 @@ function procesarVenta() {
     $.ajax({
         url: "<?= base_url('facturas/guardar') ?>",
         type: "POST",
-        data: payload,
+        data: JSON.stringify(payload),
+        contentType: "application/json; charset=utf-8",
         dataType: "JSON",
         success: function(response) {
             $('#btnProcesarVenta').prop('disabled', false);
@@ -451,25 +466,31 @@ function procesarVenta() {
             if (response.status === 'success') {
                 modalNuevaVenta.hide();
                 tablaVentas.ajax.reload();
-                Swal.fire({
-                    icon: 'success',
-                    title: '¡Factura Creada!',
-                    text: response.message,
-                    timer: 2000,
-                    showConfirmButton: false
-                });
+                
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Factura Creada!',
+                        text: response.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    alert(response.message);
+                }
             } else {
-                Toast.fire({ icon: 'error', title: response.message });
+                mostrarMensaje('error', response.message);
             }
         },
         error: function() {
             $('#btnProcesarVenta').prop('disabled', false);
-            Toast.fire({ icon: 'error', title: 'Error de servidor al guardar la factura.' });
+            mostrarMensaje('error', 'Error de servidor al guardar la factura.');
         }
     });
 }
 
 function verDetalleFactura(idVenta) {
+    facturaActualId = idVenta;
     $.get("<?= base_url('facturas/obtener/') ?>" + idVenta, function(response) {
         if (response.status === 'success') {
             let v = response.venta;
@@ -499,9 +520,29 @@ function verDetalleFactura(idVenta) {
 
             modalVerDetalle.show();
         } else {
-            Toast.fire({ icon: 'error', title: response.message });
+            mostrarMensaje('error', response.message);
         }
     });
+}
+
+function imprimirFactura(idVenta) {
+    window.open("<?= base_url('facturas/imprimir/') ?>" + idVenta, '_blank');
+}
+
+function imprimirFacturaActual() {
+    if (facturaActualId) {
+        imprimirFactura(facturaActualId);
+    }
+}
+
+function mostrarMensaje(tipo, texto) {
+    if (typeof Toast !== 'undefined') {
+        Toast.fire({ icon: tipo, title: texto });
+    } else if (typeof Swal !== 'undefined') {
+        Swal.fire({ icon: tipo, title: texto });
+    } else {
+        alert(texto);
+    }
 }
 </script>
 <?= $this->endSection() ?>
